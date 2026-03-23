@@ -61,11 +61,21 @@ export function StationMap({ showRoutes = false, height = "400px" }: StationMapP
       }
 
       mapRef.current = map;
-    }, 350);
+
+      // Force a full redraw after layout is stable
+      setTimeout(() => {
+        map.invalidateSize();
+        map.setView(map.getCenter(), map.getZoom());
+      }, 100);
+    }, 500);
 
     // Watch for resize to fix tile coverage
     const observer = new ResizeObserver(() => {
-      mapRef.current?.invalidateSize();
+      if (mapRef.current) {
+        mapRef.current.invalidateSize();
+        // Force tile reload for newly visible areas
+        mapRef.current.setView(mapRef.current.getCenter(), mapRef.current.getZoom());
+      }
     });
     observer.observe(el);
 
