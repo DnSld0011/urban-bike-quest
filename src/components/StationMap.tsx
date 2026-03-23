@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import L from "leaflet";
 import { stations, sampleRoutes } from "@/data/mockData";
 import type { Station } from "@/data/mockData";
@@ -22,61 +22,70 @@ interface StationMapProps {
 
 export function StationMap({ showRoutes = false, height = "400px" }: StationMapProps) {
   const mapRef = useRef<L.Map | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+  const containerCallback = useCallback(
+    (node: HTMLDivElement | null) => {
+      // Cleanup previous map
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
 
-    const map = L.map(containerRef.current, {
-      center: [40.758, -73.9855],
-      zoom: 13,
-      zoomControl: true,
-    });
+      if (!node) return;
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }).addTo(map);
+      // Wait for the container to have actual dimensions
+      requestAnimationFrame(() => {
+        if (!node.offsetWidth || !node.offsetHeight) return;
 
-    const icon = createStationIcon();
+        const map = L.map(node, {
+          center: [40.758, -73.9855],
+          zoom: 13,
+          zoomControl: true,
+        });
 
-    stations.forEach((s) => {
-      L.marker([s.lat, s.lng], { icon })
-        .addTo(map)
-        .bindPopup(
-          `<div style="color:#111;font-family:sans-serif"><strong>${s.name}</strong><br/>Bikes: ${s.activeBikes}/${s.capacity}</div>`
-        );
-    });
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        }).addTo(map);
 
-    if (showRoutes) {
-      sampleRoutes.forEach((route) => {
-        const latlngs = route.map((p) => [p.lat, p.lng] as [number, number]);
-        L.polyline(latlngs, { color: "hsl(145,80%,50%)", weight: 3, opacity: 0.8 }).addTo(map);
+        const icon = createStationIcon();
+
+        stations.forEach((s) => {
+          L.marker([s.lat, s.lng], { icon })
+            .addTo(map)
+            .bindPopup(
+              `<div style="color:#111;font-family:sans-serif"><strong>${s.name}</strong><br/>Bikes: ${s.activeBikes}/${s.capacity}</div>`
+            );
+        });
+
+        if (showRoutes) {
+          sampleRoutes.forEach((route) => {
+            const latlngs = route.map((p) => [p.lat, p.lng] as [number, number]);
+            L.polyline(latlngs, { color: "hsl(145,80%,50%)", weight: 3, opacity: 0.8 }).addTo(map);
+          });
+        }
+
+        mapRef.current = map;
+
+        // Ensure tiles fill the container after layout settles
+        setTimeout(() => map.invalidateSize(), 200);
       });
-    }
+    },
+    [showRoutes]
+  );
 
-    mapRef.current = map;
-
-    // Fix tile rendering when container size isn't final at mount
-    const timers = [
-      setTimeout(() => map.invalidateSize(), 100),
-      setTimeout(() => map.invalidateSize(), 300),
-      setTimeout(() => map.invalidateSize(), 600),
-    ];
-
-    const observer = new ResizeObserver(() => map.invalidateSize());
-    observer.observe(containerRef.current);
-
+  // Cleanup on unmount
+  useEffect(() => {
     return () => {
-      timers.forEach(clearTimeout);
-      observer.disconnect();
-      map.remove();
-      mapRef.current = null;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
     };
-  }, [showRoutes]);
+  }, []);
 
   return (
     <div className="rounded-lg overflow-hidden border border-border" style={{ height }}>
-      <div ref={containerRef} style={{ height: "100%", width: "100%" }} />
+      <div ref={containerCallback} style={{ height: "100%", width: "100%" }} />
     </div>
   );
 }
