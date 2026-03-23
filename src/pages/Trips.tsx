@@ -20,21 +20,27 @@ export default function Trips() {
 
   const formatTime = (iso: string) => {
     const d = new Date(iso);
-    return d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    return d.toLocaleString("es-MX", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  };
+
+  const statusLabels: Record<string, string> = {
+    all: "Todos",
+    active: "Activo",
+    completed: "Completado",
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Trips</h1>
-        <p className="text-sm text-muted-foreground mt-1">{trips.length} total trips</p>
+        <h1 className="text-2xl font-bold text-foreground">Viajes</h1>
+        <p className="text-sm text-muted-foreground mt-1">{trips.length} viajes en total</p>
       </div>
 
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search by bike or station..."
+            placeholder="Buscar por bicicleta o estación..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10 bg-secondary border-border"
@@ -51,7 +57,7 @@ export default function Trips() {
                   : "bg-secondary text-secondary-foreground hover:bg-muted"
               }`}
             >
-              {s.charAt(0).toUpperCase() + s.slice(1)}
+              {statusLabels[s]}
             </button>
           ))}
         </div>
@@ -61,11 +67,11 @@ export default function Trips() {
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
-              <TableHead className="text-muted-foreground">Bike</TableHead>
-              <TableHead className="text-muted-foreground">Status</TableHead>
-              <TableHead className="text-muted-foreground">Route</TableHead>
-              <TableHead className="text-muted-foreground">Time</TableHead>
-              <TableHead className="text-muted-foreground text-right">Distance</TableHead>
+              <TableHead className="text-muted-foreground">Bicicleta</TableHead>
+              <TableHead className="text-muted-foreground">Estado</TableHead>
+              <TableHead className="text-muted-foreground">Ruta</TableHead>
+              <TableHead className="text-muted-foreground">Hora</TableHead>
+              <TableHead className="text-muted-foreground text-right">Distancia</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

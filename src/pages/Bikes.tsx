@@ -18,19 +18,25 @@ export default function Bikes() {
   });
 
   const statuses = ["all", "available", "in_use", "maintenance"] as const;
+  const statusLabels: Record<string, string> = {
+    all: "Todos",
+    available: "Disponible",
+    in_use: "En Uso",
+    maintenance: "Mantenimiento",
+  };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Bicycles</h1>
-        <p className="text-sm text-muted-foreground mt-1">{initialBikes.length} bikes registered</p>
+        <h1 className="text-2xl font-bold text-foreground">Bicicletas</h1>
+        <p className="text-sm text-muted-foreground mt-1">{initialBikes.length} bicicletas registradas</p>
       </div>
 
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search by code..."
+            placeholder="Buscar por código..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10 bg-secondary border-border"
@@ -48,7 +54,7 @@ export default function Bikes() {
                   : "bg-secondary text-secondary-foreground hover:bg-muted"
               }`}
             >
-              {s === "all" ? "All" : s === "in_use" ? "In Use" : s.charAt(0).toUpperCase() + s.slice(1)}
+              {statusLabels[s]}
             </button>
           ))}
         </div>
@@ -58,10 +64,10 @@ export default function Bikes() {
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
-              <TableHead className="text-muted-foreground">Code</TableHead>
-              <TableHead className="text-muted-foreground">Status</TableHead>
-              <TableHead className="text-muted-foreground">Station</TableHead>
-              <TableHead className="text-muted-foreground text-right">Total KM</TableHead>
+              <TableHead className="text-muted-foreground">Código</TableHead>
+              <TableHead className="text-muted-foreground">Estado</TableHead>
+              <TableHead className="text-muted-foreground">Estación</TableHead>
+              <TableHead className="text-muted-foreground text-right">KM Total</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

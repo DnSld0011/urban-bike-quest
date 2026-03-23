@@ -3,11 +3,11 @@ interface StatusBadgeProps {
 }
 
 const config: Record<string, { label: string; classes: string }> = {
-  available: { label: "Available", classes: "bg-success/15 text-success border-success/30" },
-  in_use: { label: "In Use", classes: "bg-warning/15 text-warning border-warning/30" },
-  maintenance: { label: "Maintenance", classes: "bg-destructive/15 text-destructive border-destructive/30" },
-  active: { label: "Active", classes: "bg-warning/15 text-warning border-warning/30" },
-  completed: { label: "Completed", classes: "bg-muted text-muted-foreground border-border" },
+  available: { label: "Disponible", classes: "bg-success/15 text-success border-success/30" },
+  in_use: { label: "En Uso", classes: "bg-warning/15 text-warning border-warning/30" },
+  maintenance: { label: "Mantenimiento", classes: "bg-destructive/15 text-destructive border-destructive/30" },
+  active: { label: "Activo", classes: "bg-warning/15 text-warning border-warning/30" },
+  completed: { label: "Completado", classes: "bg-muted text-muted-foreground border-border" },
 };
 
 export function StatusBadge({ status }: StatusBadgeProps) {

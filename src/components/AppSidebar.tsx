@@ -16,16 +16,16 @@ import {
 } from "@/components/ui/sidebar";
 
 const mainItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Stations", url: "/stations", icon: MapPin },
-  { title: "Bicycles", url: "/bikes", icon: Bike },
-  { title: "Trips", url: "/trips", icon: Route },
-  { title: "Live Map", url: "/map", icon: Map },
+  { title: "Panel", url: "/", icon: LayoutDashboard },
+  { title: "Estaciones", url: "/stations", icon: MapPin },
+  { title: "Bicicletas", url: "/bikes", icon: Bike },
+  { title: "Viajes", url: "/trips", icon: Route },
+  { title: "Mapa en Vivo", url: "/map", icon: Map },
 ];
 
 const adminItems = [
-  { title: "Users", url: "/users", icon: Users },
-  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "Usuarios", url: "/users", icon: Users },
+  { title: "Configuración", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -48,7 +48,7 @@ export function AppSidebar() {
               <h1 className="text-sm font-bold text-sidebar-accent-foreground tracking-tight">
                 BikeFlow
               </h1>
-              <p className="text-[10px] text-sidebar-foreground">Smart Sharing</p>
+              <p className="text-[10px] text-sidebar-foreground">Movilidad Inteligente</p>
             </div>
           )}
         </div>
@@ -57,7 +57,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground">
-            Management
+            Gestión
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -81,7 +81,7 @@ export function AppSidebar() {
 
         <SidebarGroup>
           <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground">
-            Admin
+            Administración
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -111,7 +111,7 @@ export function AppSidebar() {
             </div>
             <div className="min-w-0">
               <p className="text-xs font-medium text-sidebar-accent-foreground truncate">Alex Rivera</p>
-              <p className="text-[10px] text-sidebar-foreground">Admin</p>
+              <p className="text-[10px] text-sidebar-foreground">Administrador</p>
             </div>
           </div>
         )}

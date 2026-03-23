@@ -19,7 +19,7 @@ export function StatCard({ title, value, subtitle, icon: Icon, trend, glow }: St
           {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
           {trend && (
             <p className={`text-xs mt-1 font-medium ${trend.positive ? "text-success" : "text-destructive"}`}>
-              {trend.positive ? "+" : ""}{trend.value}% from last week
+              {trend.positive ? "+" : ""}{trend.value}% desde la semana pasada
             </p>
           )}
         </div>

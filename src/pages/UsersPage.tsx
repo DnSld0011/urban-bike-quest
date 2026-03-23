@@ -8,19 +8,19 @@ export default function UsersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Users</h1>
-        <p className="text-sm text-muted-foreground mt-1">Manage system users and roles</p>
+        <h1 className="text-2xl font-bold text-foreground">Usuarios</h1>
+        <p className="text-sm text-muted-foreground mt-1">Administrar usuarios y roles del sistema</p>
       </div>
 
       <div className="rounded-lg border border-border overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
-              <TableHead className="text-muted-foreground">Name</TableHead>
-              <TableHead className="text-muted-foreground">Email</TableHead>
-              <TableHead className="text-muted-foreground">Phone</TableHead>
-              <TableHead className="text-muted-foreground">Role</TableHead>
-              <TableHead className="text-muted-foreground">ID</TableHead>
+              <TableHead className="text-muted-foreground">Nombre</TableHead>
+              <TableHead className="text-muted-foreground">Correo</TableHead>
+              <TableHead className="text-muted-foreground">Teléfono</TableHead>
+              <TableHead className="text-muted-foreground">Rol</TableHead>
+              <TableHead className="text-muted-foreground">Identificación</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -43,7 +43,7 @@ export default function UsersPage() {
                       : "bg-warning/15 text-warning border-warning/30"
                   }`}>
                     {u.role === "admin" ? <Shield className="w-3 h-3" /> : <Wrench className="w-3 h-3" />}
-                    {u.role === "admin" ? "Admin" : "Technical"}
+                    {u.role === "admin" ? "Administrador" : "Técnico"}
                   </span>
                 </TableCell>
                 <TableCell className="font-mono text-muted-foreground text-sm">{u.idNumber}</TableCell>
