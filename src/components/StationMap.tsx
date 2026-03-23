@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import L from "leaflet";
 import { stations, sampleRoutes } from "@/data/mockData";
 import type { Station } from "@/data/mockData";
@@ -22,70 +22,66 @@ interface StationMapProps {
 
 export function StationMap({ showRoutes = false, height = "400px" }: StationMapProps) {
   const mapRef = useRef<L.Map | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const initTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const containerCallback = useCallback(
-    (node: HTMLDivElement | null) => {
-      // Cleanup previous map
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    // Delay map init to let sidebar/layout animations finish
+    initTimerRef.current = setTimeout(() => {
+      if (mapRef.current) return;
+
+      const map = L.map(el, {
+        center: [40.758, -73.9855],
+        zoom: 13,
+        zoomControl: true,
+      });
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      }).addTo(map);
+
+      const icon = createStationIcon();
+
+      stations.forEach((s) => {
+        L.marker([s.lat, s.lng], { icon })
+          .addTo(map)
+          .bindPopup(
+            `<div style="color:#111;font-family:sans-serif"><strong>${s.name}</strong><br/>Bikes: ${s.activeBikes}/${s.capacity}</div>`
+          );
+      });
+
+      if (showRoutes) {
+        sampleRoutes.forEach((route) => {
+          const latlngs = route.map((p) => [p.lat, p.lng] as [number, number]);
+          L.polyline(latlngs, { color: "hsl(145,80%,50%)", weight: 3, opacity: 0.8 }).addTo(map);
+        });
       }
 
-      if (!node) return;
+      mapRef.current = map;
+    }, 350);
 
-      // Wait for the container to have actual dimensions
-      requestAnimationFrame(() => {
-        if (!node.offsetWidth || !node.offsetHeight) return;
+    // Watch for resize to fix tile coverage
+    const observer = new ResizeObserver(() => {
+      mapRef.current?.invalidateSize();
+    });
+    observer.observe(el);
 
-        const map = L.map(node, {
-          center: [40.758, -73.9855],
-          zoom: 13,
-          zoomControl: true,
-        });
-
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        }).addTo(map);
-
-        const icon = createStationIcon();
-
-        stations.forEach((s) => {
-          L.marker([s.lat, s.lng], { icon })
-            .addTo(map)
-            .bindPopup(
-              `<div style="color:#111;font-family:sans-serif"><strong>${s.name}</strong><br/>Bikes: ${s.activeBikes}/${s.capacity}</div>`
-            );
-        });
-
-        if (showRoutes) {
-          sampleRoutes.forEach((route) => {
-            const latlngs = route.map((p) => [p.lat, p.lng] as [number, number]);
-            L.polyline(latlngs, { color: "hsl(145,80%,50%)", weight: 3, opacity: 0.8 }).addTo(map);
-          });
-        }
-
-        mapRef.current = map;
-
-        // Ensure tiles fill the container after layout settles
-        setTimeout(() => map.invalidateSize(), 200);
-      });
-    },
-    [showRoutes]
-  );
-
-  // Cleanup on unmount
-  useEffect(() => {
     return () => {
+      if (initTimerRef.current) clearTimeout(initTimerRef.current);
+      observer.disconnect();
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
       }
     };
-  }, []);
+  }, [showRoutes]);
 
   return (
     <div className="rounded-lg overflow-hidden border border-border" style={{ height }}>
-      <div ref={containerCallback} style={{ height: "100%", width: "100%" }} />
+      <div ref={containerRef} style={{ height: "100%", width: "100%" }} />
     </div>
   );
 }
