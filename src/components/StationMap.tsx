@@ -23,17 +23,28 @@ interface StationMapProps {
 export function StationMap({ showRoutes = false, height = "400px" }: StationMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const initTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
 
-    // Delay map init to let sidebar/layout animations finish
-    initTimerRef.current = setTimeout(() => {
-      if (mapRef.current) return;
+    let cancelled = false;
 
-      const map = L.map(el, {
+    // Poll until container has stable non-zero dimensions
+    const waitForLayout = () => {
+      if (cancelled) return;
+      const { offsetWidth, offsetHeight } = el;
+      if (offsetWidth > 100 && offsetHeight > 100) {
+        initMap(el);
+      } else {
+        requestAnimationFrame(waitForLayout);
+      }
+    };
+
+    const initMap = (container: HTMLDivElement) => {
+      if (mapRef.current || cancelled) return;
+
+      const map = L.map(container, {
         center: [40.758, -73.9855],
         zoom: 13,
         zoomControl: true,
@@ -61,17 +72,29 @@ export function StationMap({ showRoutes = false, height = "400px" }: StationMapP
       }
 
       mapRef.current = map;
-    }, 350);
 
-    // Watch for resize to fix tile coverage
-    const observer = new ResizeObserver(() => {
-      mapRef.current?.invalidateSize();
-    });
-    observer.observe(el);
+      // Keep checking size for sidebar transitions
+      let lastWidth = container.offsetWidth;
+      const sizeCheck = setInterval(() => {
+        if (!mapRef.current) {
+          clearInterval(sizeCheck);
+          return;
+        }
+        const currentWidth = container.offsetWidth;
+        if (currentWidth !== lastWidth) {
+          lastWidth = currentWidth;
+          mapRef.current.invalidateSize();
+        }
+      }, 100);
+
+      // Stop polling after 3 seconds
+      setTimeout(() => clearInterval(sizeCheck), 3000);
+    };
+
+    requestAnimationFrame(waitForLayout);
 
     return () => {
-      if (initTimerRef.current) clearTimeout(initTimerRef.current);
-      observer.disconnect();
+      cancelled = true;
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
