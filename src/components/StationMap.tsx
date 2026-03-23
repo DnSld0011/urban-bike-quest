@@ -57,9 +57,18 @@ export function StationMap({ showRoutes = false, height = "400px" }: StationMapP
     mapRef.current = map;
 
     // Fix tile rendering when container size isn't final at mount
-    setTimeout(() => map.invalidateSize(), 100);
+    const timers = [
+      setTimeout(() => map.invalidateSize(), 100),
+      setTimeout(() => map.invalidateSize(), 300),
+      setTimeout(() => map.invalidateSize(), 600),
+    ];
+
+    const observer = new ResizeObserver(() => map.invalidateSize());
+    observer.observe(containerRef.current);
 
     return () => {
+      timers.forEach(clearTimeout);
+      observer.disconnect();
       map.remove();
       mapRef.current = null;
     };
