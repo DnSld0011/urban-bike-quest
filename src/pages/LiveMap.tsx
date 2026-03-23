@@ -8,8 +8,8 @@ export default function LiveMap() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Live Map</h1>
-        <p className="text-sm text-muted-foreground mt-1">Real-time view of stations and active routes</p>
+        <h1 className="text-2xl font-bold text-foreground">Mapa en Vivo</h1>
+        <p className="text-sm text-muted-foreground mt-1">Vista en tiempo real de estaciones y rutas activas</p>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
@@ -17,14 +17,14 @@ export default function LiveMap() {
           <MapPin className="w-5 h-5 text-primary" />
           <div>
             <p className="text-lg font-bold text-card-foreground">{stations.length}</p>
-            <p className="text-xs text-muted-foreground">Stations</p>
+            <p className="text-xs text-muted-foreground">Estaciones</p>
           </div>
         </div>
         <div className="rounded-lg border border-border bg-card p-4 flex items-center gap-3">
           <Route className="w-5 h-5 text-warning" />
           <div>
             <p className="text-lg font-bold text-card-foreground">{activeTrips.length}</p>
-            <p className="text-xs text-muted-foreground">Active Trips</p>
+            <p className="text-xs text-muted-foreground">Viajes Activos</p>
           </div>
         </div>
         <div className="rounded-lg border border-border bg-card p-4 flex items-center gap-3">
@@ -33,7 +33,7 @@ export default function LiveMap() {
             <p className="text-lg font-bold text-card-foreground">
               {stations.reduce((a, s) => a + s.activeBikes, 0)}
             </p>
-            <p className="text-xs text-muted-foreground">Bikes Deployed</p>
+            <p className="text-xs text-muted-foreground">Bicis Desplegadas</p>
           </div>
         </div>
       </div>

@@ -35,7 +35,7 @@ export default function Stations() {
 
   const handleSave = () => {
     if (!form.name || !form.lat || !form.lng || !form.capacity) {
-      toast.error("All fields are required");
+      toast.error("Todos los campos son obligatorios");
       return;
     }
     if (editing) {
@@ -46,7 +46,7 @@ export default function Stations() {
             : s
         )
       );
-      toast.success("Station updated");
+      toast.success("Estación actualizada");
     } else {
       const newStation: Station = {
         id: `s${Date.now()}`,
@@ -57,54 +57,54 @@ export default function Stations() {
         activeBikes: 0,
       };
       setStations((prev) => [...prev, newStation]);
-      toast.success("Station created");
+      toast.success("Estación creada");
     }
     setDialogOpen(false);
   };
 
   const handleDelete = (id: string) => {
     setStations((prev) => prev.filter((s) => s.id !== id));
-    toast.success("Station deleted");
+    toast.success("Estación eliminada");
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Stations</h1>
-          <p className="text-sm text-muted-foreground mt-1">{stationsList.length} stations registered</p>
+          <h1 className="text-2xl font-bold text-foreground">Estaciones</h1>
+          <p className="text-sm text-muted-foreground mt-1">{stationsList.length} estaciones registradas</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={openNew} className="gradient-primary text-primary-foreground font-semibold">
-              <Plus className="w-4 h-4 mr-2" /> Add Station
+              <Plus className="w-4 h-4 mr-2" /> Agregar Estación
             </Button>
           </DialogTrigger>
           <DialogContent className="bg-card border-border">
             <DialogHeader>
-              <DialogTitle className="text-foreground">{editing ? "Edit Station" : "New Station"}</DialogTitle>
+              <DialogTitle className="text-foreground">{editing ? "Editar Estación" : "Nueva Estación"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label className="text-muted-foreground">Name</Label>
+                <Label className="text-muted-foreground">Nombre</Label>
                 <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-secondary border-border" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-muted-foreground">Latitude</Label>
+                  <Label className="text-muted-foreground">Latitud</Label>
                   <Input value={form.lat} onChange={(e) => setForm({ ...form, lat: e.target.value })} className="bg-secondary border-border" />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Longitude</Label>
+                  <Label className="text-muted-foreground">Longitud</Label>
                   <Input value={form.lng} onChange={(e) => setForm({ ...form, lng: e.target.value })} className="bg-secondary border-border" />
                 </div>
               </div>
               <div>
-                <Label className="text-muted-foreground">Capacity</Label>
+                <Label className="text-muted-foreground">Capacidad</Label>
                 <Input type="number" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} className="bg-secondary border-border" />
               </div>
               <Button onClick={handleSave} className="w-full gradient-primary text-primary-foreground font-semibold">
-                {editing ? "Update" : "Create"}
+                {editing ? "Actualizar" : "Crear"}
               </Button>
             </div>
           </DialogContent>
@@ -116,7 +116,7 @@ export default function Stations() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
-          placeholder="Search stations..."
+          placeholder="Buscar estaciones..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10 bg-secondary border-border"
@@ -147,7 +147,7 @@ export default function Stations() {
             </div>
             <div className="mt-3 flex items-center gap-4">
               <div className="text-xs text-muted-foreground">
-                Bikes: <span className="text-primary font-semibold">{s.activeBikes}</span>/{s.capacity}
+                Bicis: <span className="text-primary font-semibold">{s.activeBikes}</span>/{s.capacity}
               </div>
               <div className="flex-1 h-1.5 bg-secondary rounded-full overflow-hidden">
                 <div
