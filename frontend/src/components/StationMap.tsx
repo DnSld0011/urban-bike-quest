@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
-import { stations, sampleRoutes } from "@/data/mockData";
-import type { Station } from "@/data/mockData";
+import type { StationOut } from "@/api/stations";
 
 function createStationIcon() {
   return L.divIcon({
@@ -15,12 +14,13 @@ function createStationIcon() {
 }
 
 interface StationMapProps {
+  stations?: StationOut[];
   showRoutes?: boolean;
-  selectedStation?: Station | null;
+  selectedStation?: StationOut | null;
   height?: string;
 }
 
-export function StationMap({ showRoutes = false, height = "400px" }: StationMapProps) {
+export function StationMap({ stations = [], showRoutes = false, height = "400px" }: StationMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -57,18 +57,15 @@ export function StationMap({ showRoutes = false, height = "400px" }: StationMapP
       const icon = createStationIcon();
 
       stations.forEach((s) => {
-        L.marker([s.lat, s.lng], { icon })
+        L.marker([s.latitude, s.longitude], { icon })
           .addTo(map)
           .bindPopup(
-            `<div style="color:#111;font-family:sans-serif"><strong>${s.name}</strong><br/>Bikes: ${s.activeBikes}/${s.capacity}</div>`
+            `<div style="color:#111;font-family:sans-serif"><strong>${s.name}</strong><br/>Capacidad max: ${s.capacity}</div>`
           );
       });
 
       if (showRoutes) {
-        sampleRoutes.forEach((route) => {
-          const latlngs = route.map((p) => [p.lat, p.lng] as [number, number]);
-          L.polyline(latlngs, { color: "hsl(145,80%,50%)", weight: 3, opacity: 0.8 }).addTo(map);
-        });
+        // Logica para obtener rutas si es proveida via props en el futuro
       }
 
       mapRef.current = map;

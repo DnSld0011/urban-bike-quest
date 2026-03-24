@@ -1,6 +1,7 @@
-import { LayoutDashboard, MapPin, Bike, Route, Map, Users, Settings } from "lucide-react";
+import { LayoutDashboard, MapPin, Bike, Route, Map, Users, Settings, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 import {
   Sidebar,
   SidebarContent,
@@ -32,9 +33,21 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const isActive = (path: string) =>
     path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  // Iniciales del usuario
+  const initials = user?.name
+    ? user.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
+    : "?";
 
   return (
     <Sidebar collapsible="icon">
@@ -103,18 +116,28 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4 border-t border-sidebar-border">
-        {!collapsed && (
+      <SidebarFooter className="p-4 border-t border-sidebar-border space-y-2">
+        {/* Info del usuario */}
+        {!collapsed && user && (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-primary">
-              AR
+            <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-primary shrink-0">
+              {initials}
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-medium text-sidebar-accent-foreground truncate">Alex Rivera</p>
-              <p className="text-[10px] text-sidebar-foreground">Administrador</p>
+              <p className="text-xs font-medium text-sidebar-accent-foreground truncate">{user.name}</p>
+              <p className="text-[10px] text-sidebar-foreground">{user.email}</p>
             </div>
           </div>
         )}
+
+        {/* Botón cerrar sesión */}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+        >
+          <LogOut className="w-3.5 h-3.5 shrink-0" />
+          {!collapsed && <span>Cerrar sesión</span>}
+        </button>
       </SidebarFooter>
     </Sidebar>
   );

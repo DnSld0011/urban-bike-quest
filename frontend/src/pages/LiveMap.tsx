@@ -1,10 +1,17 @@
 import { StationMap } from "@/components/StationMap";
-import { stations, trips } from "@/data/mockData";
+import { useQuery } from "@tanstack/react-query";
+import { getStations } from "@/api/stations";
+import { getRides } from "@/api/trips";
+import { getBikes } from "@/api/bikes";
 import { MapPin, Bike, Route } from "lucide-react";
 
-const activeTrips = trips.filter((t) => t.status === "active");
-
 export default function LiveMap() {
+  const { data: stations = [] } = useQuery({ queryKey: ["stations"], queryFn: getStations });
+  const { data: rides = [] } = useQuery({ queryKey: ["rides"], queryFn: getRides });
+  const { data: bikes = [] } = useQuery({ queryKey: ["bikes"], queryFn: getBikes });
+
+  const activeTrips = rides.filter((t) => !t.end_time);
+  const activeBikes = bikes.filter((b) => b.status === "in_use");
   return (
     <div className="space-y-6">
       <div>
@@ -31,14 +38,14 @@ export default function LiveMap() {
           <Bike className="w-5 h-5 text-success" />
           <div>
             <p className="text-lg font-bold text-card-foreground">
-              {stations.reduce((a, s) => a + s.activeBikes, 0)}
+              {activeBikes.length}
             </p>
             <p className="text-xs text-muted-foreground">Bicis Desplegadas</p>
           </div>
         </div>
       </div>
 
-      <StationMap showRoutes height="calc(100vh - 300px)" />
+      <StationMap stations={stations} height="calc(100vh - 300px)" />
     </div>
   );
 }
