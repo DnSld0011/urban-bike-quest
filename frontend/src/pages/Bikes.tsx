@@ -1,12 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
-import { getBikes } from "@/api/bikes";
-import { StatusBadge } from "@/components/StatusBadge";
-import { Bike, Search, Filter, Loader2, Wrench } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getBikes, createBike, updateBike, deleteBike, BikeOut, BikeCreate, BikeUpdate } from "@/api/bikes";
+import { StatusBadge } from "@/components/StatusBadge";
+import { Bike, Search, Filter, Loader2, Wrench, Plus, Edit, Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const statusLabels: Record<string, string> = {
   all: "Todos",
@@ -16,13 +18,15 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function Bikes() {
-  const { data: bikes = [], isLoading } = useQuery({
-    queryKey: ["bikes"],
-    queryFn: getBikes,
-  });
+  const queryClient = useQueryClient();
+  const { data: bikes = [], isLoading } = useQuery({ queryKey: ["bikes"], queryFn: getBikes });
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<BikeOut | null>(null);
+  const [form, setForm] = useState({ code: "", status: "available" });
 
   const filtered = bikes.filter((b) => {
     const matchSearch = b.code.toLowerCase().includes(search.toLowerCase());
@@ -30,13 +34,104 @@ export default function Bikes() {
     return matchSearch && matchStatus;
   });
 
+  const createMut = useMutation({
+    mutationFn: (data: BikeCreate) => createBike(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bikes"] });
+      toast.success("Bicicleta registrada");
+      setDialogOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const updateMut = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: BikeUpdate }) => updateBike(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bikes"] });
+      toast.success("Bicicleta actualizada");
+      setDialogOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteMut = useMutation({
+    mutationFn: (id: number) => deleteBike(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bikes"] });
+      toast.success("Bicicleta eliminada");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const openNew = () => {
+    setEditing(null);
+    setForm({ code: "", status: "available" });
+    setDialogOpen(true);
+  };
+
+  const openEdit = (b: BikeOut) => {
+    setEditing(b);
+    setForm({ code: b.code, status: b.status });
+    setDialogOpen(true);
+  };
+
+  const handleSave = () => {
+    if (!form.code) {
+      toast.error("El código es obligatorio");
+      return;
+    }
+    if (editing) {
+      updateMut.mutate({ id: editing.id, data: { code: form.code, status: form.status } });
+    } else {
+      createMut.mutate({ code: form.code, status: form.status });
+    }
+  };
+
+  const isSaving = createMut.isPending || updateMut.isPending;
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Bicicletas</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {isLoading ? "Cargando..." : `${bikes.length} bicicletas registradas`}
-        </p>
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Bicicletas</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {isLoading ? "Cargando..." : `${bikes.length} bicicletas registradas`}
+          </p>
+        </div>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={openNew} className="gradient-primary text-primary-foreground font-semibold">
+              <Plus className="w-4 h-4 mr-2" /> Nueva Bicicleta
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="bg-card border-border">
+            <DialogHeader>
+              <DialogTitle className="text-foreground">{editing ? "Editar Bicicleta" : "Nueva Bicicleta"}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label className="text-muted-foreground">Código identificador</Label>
+                <Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="bg-secondary border-border" />
+              </div>
+              <div>
+                <Label className="text-muted-foreground">Estado</Label>
+                <select 
+                  value={form.status}
+                  onChange={(e) => setForm({...form, status: e.target.value})}
+                  className="w-full mt-1.5 rounded-md border border-border bg-secondary text-foreground text-sm px-3 py-2"
+                >
+                  <option value="available">Disponible</option>
+                  <option value="in_use">En Uso</option>
+                  <option value="maintenance">En Mantenimiento</option>
+                </select>
+              </div>
+              <Button onClick={handleSave} disabled={isSaving} className="w-full gradient-primary text-primary-foreground font-semibold">
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                {editing ? "Actualizar" : "Crear"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="flex flex-wrap gap-3">
@@ -81,6 +176,7 @@ export default function Bikes() {
                 <TableHead className="text-muted-foreground">Mantenimiento</TableHead>
                 <TableHead className="text-muted-foreground text-right">KM Total</TableHead>
                 <TableHead className="text-muted-foreground text-right">Último servicio (km)</TableHead>
+                <TableHead className="text-muted-foreground text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -110,11 +206,29 @@ export default function Bikes() {
                   <TableCell className="text-right font-mono text-muted-foreground text-sm">
                     {b.last_maintenance_km.toLocaleString()} km
                   </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex gap-1 justify-end">
+                      <button onClick={() => openEdit(b)} className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`¿Seguro que deseas eliminar la bicicleta ${b.code}?`)) {
+                            deleteMut.mutate(b.id);
+                          }
+                        }}
+                        disabled={deleteMut.isPending}
+                        className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground text-sm">
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground text-sm">
                     No se encontraron bicicletas
                   </TableCell>
                 </TableRow>

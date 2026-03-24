@@ -11,7 +11,7 @@ const config: Record<string, { label: string; classes: string }> = {
 };
 
 export function StatusBadge({ status }: StatusBadgeProps) {
-  const c = config[status];
+  const c = config[status] || { label: status || "Desconocido", classes: "bg-muted text-muted-foreground border-border" };
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${c.classes}`}>
       <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse-glow" />

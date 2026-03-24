@@ -43,6 +43,15 @@ class UserCreate(BaseModel):
     password: str
     role_id: Optional[int] = None
 
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    dni: Optional[str] = None
+    password: Optional[str] = None
+    role_id: Optional[int] = None
+
 
 class UserOut(BaseModel):
     id: int
@@ -85,6 +94,13 @@ class BikeCreate(BaseModel):
     code: str
     status: Optional[str] = "available"
 
+class BikeUpdate(BaseModel):
+    code: Optional[str] = None
+    status: Optional[str] = None
+    total_km: Optional[float] = None
+    last_maintenance_km: Optional[float] = None
+    needs_maintenance: Optional[bool] = None
+
 
 class BikeOut(BaseModel):
     id: int
@@ -106,6 +122,11 @@ class RideCreate(BaseModel):
     bike_id: int
     start_station_id: Optional[int] = None
     end_station_id: Optional[int] = None
+    distance: Optional[float] = None
+
+class RideUpdate(BaseModel):
+    end_station_id: Optional[int] = None
+    end_time: Optional[datetime] = None
     distance: Optional[float] = None
 
 
@@ -215,6 +236,29 @@ class PredictionOut(BaseModel):
     station_id: int
     predicted_bikes: Optional[int]
     date: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ────────────────────────────────────────────────
+#  SETTINGS
+# ────────────────────────────────────────────────
+class SettingCreate(BaseModel):
+    key: str
+    value: str
+    description: Optional[str] = None
+
+
+class SettingUpdate(BaseModel):
+    value: str
+
+
+class SettingOut(BaseModel):
+    id: int
+    key: str
+    value: str
+    description: Optional[str]
 
     class Config:
         from_attributes = True

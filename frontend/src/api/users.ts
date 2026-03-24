@@ -25,3 +25,19 @@ export const getUsers = () =>
 
 export const createUser = (data: UserCreate) =>
   apiRequest<UserOut>("/users", { method: "POST", body: JSON.stringify(data) });
+
+export interface UserUpdate {
+  full_name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  dni?: string;
+  password?: string;
+  role_id?: number;
+}
+
+export const updateUser = (id: number, data: UserUpdate) =>
+  apiRequest<UserOut>(`/users/${id}`, { method: "PUT", body: JSON.stringify(data) });
+
+export const deleteUser = (id: number) =>
+  apiRequest<{ message: string }>(`/users/${id}`, { method: "DELETE" });

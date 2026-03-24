@@ -119,6 +119,30 @@ def get_users(
 ):
     return db.query(models.User).all()
 
+@app.put("/users/{user_id}", response_model=schemas.UserOut)
+def update_user(user_id: int, data: schemas.UserUpdate, db: Session = Depends(get_db)):
+    u = db.query(models.User).filter(models.User.id == user_id).first()
+    if not u:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    update_data = data.model_dump(exclude_unset=True)
+    if "password" in update_data and update_data["password"]:
+        from auth import hash_password
+        update_data["password"] = hash_password(update_data["password"])
+    for key, value in update_data.items():
+        setattr(u, key, value)
+    db.commit()
+    db.refresh(u)
+    return u
+
+@app.delete("/users/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    u = db.query(models.User).filter(models.User.id == user_id).first()
+    if not u:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    db.delete(u)
+    db.commit()
+    return {"message": "Usuario eliminado"}
+
 # ================== STATIONS ==================
 @app.post("/stations", response_model=schemas.StationOut)
 def create_station(data: schemas.StationCreate, db: Session = Depends(get_db)):
@@ -165,6 +189,27 @@ def create_bike(data: schemas.BikeCreate, db: Session = Depends(get_db)):
 def get_bikes(db: Session = Depends(get_db)):
     return db.query(models.Bike).all()
 
+@app.put("/bikes/{bike_id}", response_model=schemas.BikeOut)
+def update_bike(bike_id: int, data: schemas.BikeUpdate, db: Session = Depends(get_db)):
+    b = db.query(models.Bike).filter(models.Bike.id == bike_id).first()
+    if not b:
+        raise HTTPException(status_code=404, detail="Bicicleta no encontrada")
+    update_data = data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(b, key, value)
+    db.commit()
+    db.refresh(b)
+    return b
+
+@app.delete("/bikes/{bike_id}")
+def delete_bike(bike_id: int, db: Session = Depends(get_db)):
+    b = db.query(models.Bike).filter(models.Bike.id == bike_id).first()
+    if not b:
+        raise HTTPException(status_code=404, detail="Bicicleta no encontrada")
+    db.delete(b)
+    db.commit()
+    return {"message": "Bicicleta eliminada"}
+
 # ================== RIDES ==================
 @app.post("/rides", response_model=schemas.RideOut)
 def create_ride(data: schemas.RideCreate, db: Session = Depends(get_db)):
@@ -184,6 +229,27 @@ def get_ride(ride_id: int, db: Session = Depends(get_db)):
     if not ride:
         raise HTTPException(status_code=404, detail="Recorrido no encontrado")
     return ride
+
+@app.put("/rides/{ride_id}", response_model=schemas.RideOut)
+def update_ride(ride_id: int, data: schemas.RideUpdate, db: Session = Depends(get_db)):
+    r = db.query(models.Ride).filter(models.Ride.id == ride_id).first()
+    if not r:
+        raise HTTPException(status_code=404, detail="Viaje no encontrado")
+    update_data = data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(r, key, value)
+    db.commit()
+    db.refresh(r)
+    return r
+
+@app.delete("/rides/{ride_id}")
+def delete_ride(ride_id: int, db: Session = Depends(get_db)):
+    r = db.query(models.Ride).filter(models.Ride.id == ride_id).first()
+    if not r:
+        raise HTTPException(status_code=404, detail="Viaje no encontrado")
+    db.delete(r)
+    db.commit()
+    return {"message": "Viaje eliminado"}
 
 # ================== GPS TRACK ==================
 @app.post("/ride-points", response_model=schemas.RidePointOut)
@@ -249,6 +315,35 @@ def create_prediction(data: schemas.PredictionCreate, db: Session = Depends(get_
 @app.get("/predictions", response_model=list[schemas.PredictionOut])
 def get_predictions(db: Session = Depends(get_db)):
     return db.query(models.Prediction).all()
+
+# ================== SETTINGS ==================
+@app.post("/settings", response_model=schemas.SettingOut)
+def create_setting(data: schemas.SettingCreate, db: Session = Depends(get_db)):
+    existing = db.query(models.SystemSetting).filter(models.SystemSetting.key == data.key).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Setting key already exists")
+    s = models.SystemSetting(**data.model_dump())
+    db.add(s)
+    db.commit()
+    db.refresh(s)
+    return s
+
+@app.get("/settings", response_model=list[schemas.SettingOut])
+def get_settings(db: Session = Depends(get_db)):
+    return db.query(models.SystemSetting).all()
+
+@app.put("/settings/{key}", response_model=schemas.SettingOut)
+def update_setting(key: str, data: schemas.SettingUpdate, db: Session = Depends(get_db)):
+    s = db.query(models.SystemSetting).filter(models.SystemSetting.key == key).first()
+    if not s:
+        # Create it if it doesn't exist
+        s = models.SystemSetting(key=key, value=data.value, description="")
+        db.add(s)
+    else:
+        s.value = data.value
+    db.commit()
+    db.refresh(s)
+    return s
 
 # ================== SEED ==================
 @app.get("/seed")

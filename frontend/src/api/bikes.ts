@@ -19,3 +19,17 @@ export const getBikes = () =>
 
 export const createBike = (data: BikeCreate) =>
   apiRequest<BikeOut>("/bikes", { method: "POST", body: JSON.stringify(data) });
+
+export interface BikeUpdate {
+  code?: string;
+  status?: string;
+  total_km?: number;
+  last_maintenance_km?: number;
+  needs_maintenance?: boolean;
+}
+
+export const updateBike = (id: number, data: BikeUpdate) =>
+  apiRequest<BikeOut>(`/bikes/${id}`, { method: "PUT", body: JSON.stringify(data) });
+
+export const deleteBike = (id: number) =>
+  apiRequest<{ message: string }>(`/bikes/${id}`, { method: "DELETE" });

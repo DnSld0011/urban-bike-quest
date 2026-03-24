@@ -1,4 +1,4 @@
-import { LayoutDashboard, MapPin, Bike, Route, Map, Users, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, MapPin, Bike, Route, Map, Users, Settings, LogOut, Wrench } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -17,11 +17,12 @@ import {
 } from "@/components/ui/sidebar";
 
 const mainItems = [
-  { title: "Panel", url: "/", icon: LayoutDashboard },
-  { title: "Estaciones", url: "/stations", icon: MapPin },
-  { title: "Bicicletas", url: "/bikes", icon: Bike },
-  { title: "Viajes", url: "/trips", icon: Route },
-  { title: "Mapa en Vivo", url: "/map", icon: Map },
+  { icon: LayoutDashboard, title: "Panel", url: "/" },
+  { icon: MapPin, title: "Estaciones", url: "/stations" },
+  { icon: Bike, title: "Bicicletas", url: "/bikes" },
+  { icon: Route, title: "Viajes", url: "/trips" },
+  { icon: Map, title: "Mapa en Vivo", url: "/map" },
+  { icon: Wrench, title: "Mantenimiento", url: "/maintenance" },
 ];
 
 const adminItems = [

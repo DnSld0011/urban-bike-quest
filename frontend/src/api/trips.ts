@@ -38,3 +38,15 @@ export const createRide = (data: RideCreate) =>
 
 export const getRidePoints = (rideId: number) =>
   apiRequest<RidePointOut[]>(`/ride-points/${rideId}`);
+
+export interface RideUpdate {
+  end_station_id?: number;
+  end_time?: string;
+  distance?: number;
+}
+
+export const updateRide = (id: number, data: RideUpdate) =>
+  apiRequest<RideOut>(`/rides/${id}`, { method: "PUT", body: JSON.stringify(data) });
+
+export const deleteRide = (id: number) =>
+  apiRequest<{ message: string }>(`/rides/${id}`, { method: "DELETE" });

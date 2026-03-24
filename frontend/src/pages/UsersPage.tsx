@@ -1,17 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getUsers, createUser, UserCreate } from "@/api/users";
-import { Users, Shield, Wrench, UserPlus, Loader2 } from "lucide-react";
+import { getUsers, createUser, updateUser, deleteUser, UserOut, UserCreate, UserUpdate } from "@/api/users";
+import { Users, Shield, Wrench, UserPlus, Loader2, Edit, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 
-const emptyForm: UserCreate = {
+const emptyForm = {
   full_name: "", email: "", phone: "", address: "", dni: "", password: "", role_id: 1,
 };
 
@@ -20,26 +18,77 @@ export default function UsersPage() {
   const { data: users = [], isLoading } = useQuery({ queryKey: ["users"], queryFn: getUsers });
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [form, setForm] = useState<UserCreate>(emptyForm);
+  const [editing, setEditing] = useState<UserOut | null>(null);
+  const [form, setForm] = useState(emptyForm);
 
   const createMut = useMutation({
-    mutationFn: createUser,
+    mutationFn: (data: UserCreate) => createUser(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Usuario creado exitosamente");
       setDialogOpen(false);
-      setForm(emptyForm);
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const updateMut = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: UserUpdate }) => updateUser(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Usuario actualizado");
+      setDialogOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteMut = useMutation({
+    mutationFn: (id: number) => deleteUser(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Usuario eliminado");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const openNew = () => {
+    setEditing(null);
+    setForm(emptyForm);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (u: UserOut) => {
+    setEditing(u);
+    setForm({
+      full_name: u.full_name,
+      email: u.email,
+      phone: u.phone || "",
+      address: u.address || "",
+      dni: u.dni || "",
+      password: "",
+      role_id: u.role_id || 1
+    });
+    setDialogOpen(true);
+  };
+
   const handleSave = () => {
-    if (!form.full_name || !form.email || !form.password) {
-      toast.error("Nombre, email y contraseña son obligatorios");
+    if (!form.full_name || !form.email) {
+      toast.error("Nombre y email son obligatorios");
       return;
     }
-    createMut.mutate(form);
+    if (editing) {
+      const updateData: UserUpdate = { ...form };
+      if (!updateData.password) delete updateData.password;
+      updateMut.mutate({ id: editing.id, data: updateData });
+    } else {
+      if (!form.password) {
+        toast.error("La contraseña es obligatoria para nuevos usuarios");
+        return;
+      }
+      createMut.mutate(form as UserCreate);
+    }
   };
+
+  const isSaving = createMut.isPending || updateMut.isPending;
 
   return (
     <div className="space-y-6">
@@ -51,13 +100,13 @@ export default function UsersPage() {
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="gradient-primary text-primary-foreground font-semibold">
+            <Button onClick={openNew} className="gradient-primary text-primary-foreground font-semibold">
               <UserPlus className="w-4 h-4 mr-2" /> Nuevo Usuario
             </Button>
           </DialogTrigger>
           <DialogContent className="bg-card border-border">
             <DialogHeader>
-              <DialogTitle className="text-foreground">Nuevo Usuario</DialogTitle>
+              <DialogTitle className="text-foreground">{editing ? "Editar Usuario" : "Nuevo Usuario"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
               {[
@@ -69,10 +118,12 @@ export default function UsersPage() {
                 { label: "Contraseña", key: "password", type: "password" },
               ].map(({ label, key, type }) => (
                 <div key={key}>
-                  <Label className="text-muted-foreground text-xs">{label}</Label>
+                  <Label className="text-muted-foreground text-xs">
+                    {label} {key === 'password' && editing ? "(Dejar vacío para no cambiar)" : ""}
+                  </Label>
                   <Input
                     type={type}
-                    value={(form as Record<string, unknown>)[key] as string}
+                    value={(form as any)[key] || ""}
                     onChange={(e) => setForm({ ...form, [key]: e.target.value })}
                     className="bg-secondary border-border"
                   />
@@ -91,11 +142,11 @@ export default function UsersPage() {
               </div>
               <Button
                 onClick={handleSave}
-                disabled={createMut.isPending}
+                disabled={isSaving}
                 className="w-full gradient-primary text-primary-foreground font-semibold"
               >
-                {createMut.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                Crear Usuario
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                {editing ? "Guardar Cambios" : "Crear Usuario"}
               </Button>
             </div>
           </DialogContent>
@@ -114,9 +165,9 @@ export default function UsersPage() {
                 <TableHead className="text-muted-foreground">Nombre</TableHead>
                 <TableHead className="text-muted-foreground">Correo</TableHead>
                 <TableHead className="text-muted-foreground">Teléfono</TableHead>
-                <TableHead className="text-muted-foreground">Dirección</TableHead>
                 <TableHead className="text-muted-foreground">Rol</TableHead>
                 <TableHead className="text-muted-foreground">DNI</TableHead>
+                <TableHead className="text-muted-foreground text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -132,7 +183,6 @@ export default function UsersPage() {
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">{u.email}</TableCell>
                   <TableCell className="text-muted-foreground text-sm">{u.phone ?? "—"}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{u.address ?? "—"}</TableCell>
                   <TableCell>
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${
                       u.role_id === 1
@@ -144,6 +194,24 @@ export default function UsersPage() {
                     </span>
                   </TableCell>
                   <TableCell className="font-mono text-muted-foreground text-sm">{u.dni ?? "—"}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex gap-1 justify-end">
+                      <button onClick={() => openEdit(u)} className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`¿Seguro que deseas eliminar al usuario ${u.full_name}?`)) {
+                            deleteMut.mutate(u.id);
+                          }
+                        }}
+                        disabled={deleteMut.isPending}
+                        className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
               {users.length === 0 && (
