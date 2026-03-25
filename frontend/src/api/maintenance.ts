@@ -15,7 +15,7 @@ export interface MaintenanceCreate {
 }
 
 export const getMaintenances = () =>
-  apiRequest<MaintenanceOut[]>("/maintenance");
+  apiRequest<MaintenanceOut[]>("/maintenance", { auth: true });
 
 export const createMaintenance = (data: MaintenanceCreate) =>
-  apiRequest<MaintenanceOut>("/maintenance", { method: "POST", body: JSON.stringify(data) });
+  apiRequest<MaintenanceOut>("/maintenance", { method: "POST", body: JSON.stringify(data), auth: true });

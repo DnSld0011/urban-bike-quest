@@ -1,4 +1,4 @@
-import { apiRequest } from "./client";
+import { apiRequest, BASE_URL } from "./client";
 
 // ─── Tipos ──────────────────────────────────────────────────────────────────
 export interface BikeOut {
@@ -68,7 +68,46 @@ export const updateBike = (id: number, data: BikeUpdate) =>
 export const deleteBike = (id: number) =>
   apiRequest<{ message: string }>(`/bikes/${id}`, { method: "DELETE", auth: true });
 
-export const getBikeQrUrl = (id: number) => `/bikes/${id}/qr`;
+// Función auxiliar para descargar el QR usando JWT usando FileReader para forzar extensión
+export const downloadBikeQrAuth = async (id: number): Promise<void> => {
+  const token = localStorage.getItem("access_token");
+  const url = `${BASE_URL}/bikes/${id}/qr`;
+  
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) throw new Error("El QR no existe en el servidor");
+    throw new Error(`HTTP ${response.status}: No se pudo descargar el QR`);
+  }
+
+  // Leer Blob como imagen estricta
+  const rawBlob = await response.blob();
+  const blob = new Blob([rawBlob], { type: "image/png" });
+  
+  // Convertir a Base64 URL (Data URI) es la forma más segura de forzar la descarga y extensión
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = dataUrl;
+      // Este nombre y extensión ya no podrá ser ignorado
+      a.download = `Codigo_QR_Bicicleta_${id}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      resolve();
+    };
+    reader.readAsDataURL(blob);
+  });
+};
 
 export const getBikeHistory = (id: number) =>
   apiRequest<BikeHistoryOut>(`/bikes/${id}/history`, { auth: true });

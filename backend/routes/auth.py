@@ -1,16 +1,34 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
 from core.dependencies import get_db
 import schemas.auth as schemas
 import services.auth as services
 
 router = APIRouter(tags=["Auth"])
 
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
 @router.post("/login", response_model=schemas.Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    """Login con OAuth2 (formulario). Usado por Swagger UI."""
     return services.login_form(db, form_data)
+
 
 @router.post("/login-json")
 def login_json(data: schemas.LoginRequest, db: Session = Depends(get_db)):
+    """Login con JSON. Devuelve access_token + refresh_token + datos del usuario."""
     return services.login_json(db, data)
+
+
+@router.post("/refresh")
+def refresh_token(body: RefreshRequest, db: Session = Depends(get_db)):
+    """
+    Renueva el access_token usando un refresh_token válido (30 días de vigencia).
+    El cliente debe llamar a este endpoint cuando reciba un 401.
+    """
+    return services.refresh_access_token(db, body.refresh_token)

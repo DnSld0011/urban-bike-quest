@@ -8,11 +8,11 @@ from services.qr import generate_bike_qr, get_qr_filepath
 
 
 def create_bike(db: Session, data: schemas.BikeCreate):
-    # Generar código UUID único
-    bike_code = str(uuid.uuid4())
+    # Generar código UUID temporal para evitar colisiones UNIQUE
+    temp_code = str(uuid.uuid4())
 
     new_bike = Bike(
-        code=bike_code,
+        code=temp_code,
         status=data.status,
         station_id=data.station_id,
         latitude=data.latitude,
@@ -23,17 +23,22 @@ def create_bike(db: Session, data: schemas.BikeCreate):
     db.commit()
     db.refresh(new_bike)
 
+    # Actualizar al código final escalonado: BIKE-00001, BIKE-00002, etc.
+    final_code = f"BIKE-{new_bike.id:05d}"
+    new_bike.code = final_code
+
     # Generar QR ahora que tenemos el ID
     qr_relative_path = generate_bike_qr(new_bike.id)
     new_bike.qr_path = qr_relative_path
+    
     db.commit()
     db.refresh(new_bike)
 
     return new_bike
 
 
-def get_bikes(db: Session):
-    return db.query(Bike).all()
+def get_bikes(db: Session, skip: int = 0, limit: int = 50):
+    return db.query(Bike).offset(skip).limit(limit).all()
 
 
 def get_bike(db: Session, bike_id: int):

@@ -10,8 +10,8 @@ def create_station(db: Session, data: schemas.StationCreate):
     db.refresh(new_station)
     return new_station
 
-def get_stations(db: Session):
-    return db.query(Station).all()
+def get_stations(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(Station).offset(skip).limit(limit).all()
 
 def update_station(db: Session, station_id: int, data: schemas.StationCreate):
     station = db.query(Station).filter(Station.id == station_id).first()

@@ -37,7 +37,7 @@ export interface UserUpdate {
 }
 
 export const updateUser = (id: number, data: UserUpdate) =>
-  apiRequest<UserOut>(`/users/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  apiRequest<UserOut>(`/users/${id}`, { method: "PUT", body: JSON.stringify(data), auth: true });
 
 export const deleteUser = (id: number) =>
-  apiRequest<{ message: string }>(`/users/${id}`, { method: "DELETE" });
+  apiRequest<{ message: string }>(`/users/${id}`, { method: "DELETE", auth: true });

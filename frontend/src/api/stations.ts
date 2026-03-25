@@ -19,10 +19,10 @@ export const getStations = () =>
   apiRequest<StationOut[]>("/stations");
 
 export const createStation = (data: StationCreate) =>
-  apiRequest<StationOut>("/stations", { method: "POST", body: JSON.stringify(data) });
+  apiRequest<StationOut>("/stations", { method: "POST", body: JSON.stringify(data), auth: true });
 
 export const updateStation = (id: number, data: StationCreate) =>
-  apiRequest<StationOut>(`/stations/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  apiRequest<StationOut>(`/stations/${id}`, { method: "PUT", body: JSON.stringify(data), auth: true });
 
 export const deleteStation = (id: number) =>
-  apiRequest<void>(`/stations/${id}`, { method: "DELETE" });
+  apiRequest<void>(`/stations/${id}`, { method: "DELETE", auth: true });

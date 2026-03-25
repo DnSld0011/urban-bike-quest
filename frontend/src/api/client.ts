@@ -1,5 +1,5 @@
 // ─── Cliente HTTP base que apunta al backend FastAPI ───────────────────────
-const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+export const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // Lee el token JWT guardado en localStorage
 function getToken(): string | null {

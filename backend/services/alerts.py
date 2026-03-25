@@ -31,12 +31,12 @@ def create_maintenance_alert(db: Session, bike: Bike) -> Alert:
     return alert
 
 
-def get_all_alerts(db: Session):
-    return db.query(Alert).order_by(Alert.created_at.desc()).all()
+def get_all_alerts(db: Session, skip: int = 0, limit: int = 50):
+    return db.query(Alert).order_by(Alert.created_at.desc()).offset(skip).limit(limit).all()
 
 
-def get_active_alerts(db: Session):
-    return db.query(Alert).filter(Alert.resolved == False).order_by(Alert.created_at.desc()).all()
+def get_active_alerts(db: Session, skip: int = 0, limit: int = 50):
+    return db.query(Alert).filter(Alert.resolved == False).order_by(Alert.created_at.desc()).offset(skip).limit(limit).all()
 
 
 def resolve_alert(db: Session, alert_id: int) -> Alert:
