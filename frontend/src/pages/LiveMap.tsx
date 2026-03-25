@@ -45,7 +45,7 @@ export default function LiveMap() {
         </div>
       </div>
 
-      <StationMap stations={stations} height="calc(100vh - 300px)" />
+      <StationMap stations={stations} activeTrips={activeTrips} height="calc(100vh - 300px)" />
     </div>
   );
 }

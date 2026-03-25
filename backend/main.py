@@ -215,6 +215,12 @@ def delete_bike(bike_id: int, db: Session = Depends(get_db)):
 def create_ride(data: schemas.RideCreate, db: Session = Depends(get_db)):
     new_ride = models.Ride(**data.model_dump())
     db.add(new_ride)
+    
+    # Auto-update bike status to in_use
+    bike = db.query(models.Bike).filter(models.Bike.id == data.bike_id).first()
+    if bike:
+        bike.status = "in_use"
+        
     db.commit()
     db.refresh(new_ride)
     return new_ride
@@ -235,7 +241,15 @@ def update_ride(ride_id: int, data: schemas.RideUpdate, db: Session = Depends(ge
     r = db.query(models.Ride).filter(models.Ride.id == ride_id).first()
     if not r:
         raise HTTPException(status_code=404, detail="Viaje no encontrado")
+    
     update_data = data.model_dump(exclude_unset=True)
+    
+    # Auto-update bike status to available if the ride is finishing
+    if "end_time" in update_data or "end_station_id" in update_data:
+        bike = db.query(models.Bike).filter(models.Bike.id == r.bike_id).first()
+        if bike:
+            bike.status = "available"
+            
     for key, value in update_data.items():
         setattr(r, key, value)
     db.commit()

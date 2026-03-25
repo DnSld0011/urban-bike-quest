@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import type { StationOut } from "@/api/stations";
-
+import type { RideOut } from "@/api/trips";
 function createStationIcon() {
   return L.divIcon({
     className: "",
@@ -17,17 +17,21 @@ function createStationIcon() {
 interface StationMapProps {
   stations?: StationOut[];
   showRoutes?: boolean;
+  activeTrips?: RideOut[];
   selectedStation?: StationOut | null;
   height?: string;
 }
 
-export function StationMap({ stations = [], showRoutes = false, height = "400px" }: StationMapProps) {
+export function StationMap({ stations = [], showRoutes = false, activeTrips = [], height = "400px" }: StationMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Stringify the stations so the effect only triggers when the actual data changes
   const stationsFingerprint = JSON.stringify(
     stations.map((s) => ({ id: s.id, lat: s.latitude, lng: s.longitude, cap: s.capacity }))
+  );
+  const activeTripsFingerprint = JSON.stringify(
+    activeTrips.map((t) => ({ id: t.id, start_station_id: t.start_station_id, bike_id: t.bike_id }))
   );
 
   useEffect(() => {
@@ -52,8 +56,8 @@ export function StationMap({ stations = [], showRoutes = false, height = "400px"
 
       const map = L.map(container);
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+        attribution: '&copy; <a href="https://carto.com/">Carto</a>',
       }).addTo(map);
 
       const icon = createStationIcon();
@@ -82,8 +86,44 @@ export function StationMap({ stations = [], showRoutes = false, height = "400px"
         map.setView([-12.0464, -77.0428], 13);
       }
 
+      // Simulate live routes for active trips
+      if (activeTrips.length > 0) {
+        activeTrips.forEach((trip) => {
+          const startStation = stations.find((s) => s.id === trip.start_station_id);
+          if (startStation) {
+            // Generate a simulated end point slightly offset from start station 
+            // to represent a bike currently in motion in the city
+            const simulatedLat = startStation.latitude + (Math.random() - 0.5) * 0.015;
+            const simulatedLng = startStation.longitude + (Math.random() - 0.5) * 0.015;
+            
+            const routeCoordinates: [number, number][] = [
+              [startStation.latitude, startStation.longitude],
+              [simulatedLat, simulatedLng]
+            ];
+
+            // Animated polyline
+            L.polyline(routeCoordinates, {
+              color: 'hsl(220, 90%, 56%)',
+              weight: 4,
+              dashArray: '10, 15',
+              lineCap: 'round',
+              className: 'animate-pulse' // Tailwind class for pulsing effect
+            }).addTo(map)
+              .bindTooltip(`Viaje #${trip.id} activo (Bici #${trip.bike_id})`, { permanent: true, direction: "center", className: "bg-background text-xs" });
+            
+            // Add a simulated cyclist marker
+            L.circleMarker([simulatedLat, simulatedLng], {
+              radius: 6,
+              color: 'white',
+              fillColor: 'red',
+              fillOpacity: 1
+            }).addTo(map);
+          }
+        });
+      }
+
       if (showRoutes) {
-        // Logica para obtener rutas si es proveida via props en el futuro
+        // Logica heredada reservada...
       }
 
       mapRef.current = map;
@@ -115,7 +155,7 @@ export function StationMap({ stations = [], showRoutes = false, height = "400px"
         mapRef.current = null;
       }
     };
-  }, [showRoutes, stationsFingerprint]); // Dependencies updated!
+  }, [showRoutes, stationsFingerprint, activeTripsFingerprint]);
 
   return (
     <div className="rounded-lg overflow-hidden border border-border shadow-sm" style={{ height }}>

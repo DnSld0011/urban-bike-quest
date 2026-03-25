@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getStations, createStation, updateStation, deleteStation, StationOut, StationCreate } from "@/api/stations";
 import { StationMap } from "@/components/StationMap";
+import { MapPicker } from "@/components/MapPicker";
 import { MapPin, Plus, Search, Edit, Trash2, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -112,16 +113,27 @@ export default function Stations() {
                 <Label className="text-muted-foreground">Nombre</Label>
                 <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-secondary border-border" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-muted-foreground">Latitud</Label>
-                  <Input value={form.lat} onChange={(e) => setForm({ ...form, lat: e.target.value })} className="bg-secondary border-border" />
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Longitud</Label>
-                  <Input value={form.lng} onChange={(e) => setForm({ ...form, lng: e.target.value })} className="bg-secondary border-border" />
-                </div>
+              
+              <div>
+                <Label className="text-muted-foreground flex justify-between items-center mb-1.5">
+                   <span>Ubicación Exacta (Haz clic en el mapa)</span>
+                   <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded">
+                     {form.lat ? `${Number(form.lat).toFixed(4)}, ${Number(form.lng).toFixed(4)}` : "No seleccionada"}
+                   </span>
+                </Label>
+                <MapPicker 
+                  lat={Number(form.lat) || -12.0464} 
+                  lng={Number(form.lng) || -77.0428} 
+                  onChange={(lat, lng) => setForm({ ...form, lat: String(lat), lng: String(lng) })} 
+                />
               </div>
+
+              <div className="hidden">
+                  {/* Coordenadas en formato crudo por si se necesitan debuguear */}
+                  <Input value={form.lat} readOnly />
+                  <Input value={form.lng} readOnly />
+              </div>
+              
               <div>
                 <Label className="text-muted-foreground">Capacidad</Label>
                 <Input type="number" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} className="bg-secondary border-border" />
