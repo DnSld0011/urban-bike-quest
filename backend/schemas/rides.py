@@ -29,6 +29,11 @@ class RideOut(BaseModel):
     start_time: Optional[datetime]
     end_time: Optional[datetime]
     distance: Optional[float]
+    distance_km: Optional[float] = None  # alias para compatibilidad con la app móvil
+
+    @property
+    def distance_km(self):
+        return self.distance
 
     class Config:
         from_attributes = True
@@ -95,4 +100,5 @@ class EndRideResponse(BaseModel):
     total_distance_km: float
     km_added_to_bike: float
     duration_minutes: float
+    calories_burned: float  # Calorías quemadas en el viaje (usando peso promedio 70kg)
     message: str

@@ -13,6 +13,7 @@ import Bikes from "@/pages/Bikes";
 import Trips from "@/pages/Trips";
 import LiveMap from "@/pages/LiveMap";
 import UsersPage from "@/pages/UsersPage";
+import RolesPage from "@/pages/RolesPage";
 import SettingsPage from "@/pages/SettingsPage";
 import LoginPage from "@/pages/LoginPage";
 import MaintenancePage from "@/pages/MaintenancePage";
@@ -52,6 +53,7 @@ const App = () => (
                         <Route path="/trips" element={<Trips />} />
                         <Route path="/map" element={<LiveMap />} />
                         <Route path="/users" element={<UsersPage />} />
+                        <Route path="/roles" element={<RolesPage />} />
                         <Route path="/settings" element={<SettingsPage />} />
                         <Route path="/maintenance" element={<MaintenancePage />} />
                         <Route path="*" element={<NotFound />} />

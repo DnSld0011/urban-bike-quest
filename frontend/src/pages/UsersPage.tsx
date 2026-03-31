@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getUsers, createUser, updateUser, deleteUser, UserOut, UserCreate, UserUpdate } from "@/api/users";
+import { getRoles } from "@/api/roles";
 import { Users, Shield, Wrench, UserPlus, Loader2, Edit, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ const emptyForm = {
 export default function UsersPage() {
   const queryClient = useQueryClient();
   const { data: users = [], isLoading } = useQuery({ queryKey: ["users"], queryFn: getUsers });
+  const { data: roles = [] } = useQuery({ queryKey: ["roles"], queryFn: getRoles });
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<UserOut | null>(null);
@@ -132,12 +134,14 @@ export default function UsersPage() {
               <div>
                 <Label className="text-muted-foreground text-xs">Rol</Label>
                 <select
-                  value={form.role_id ?? 1}
+                  value={form.role_id ?? ""}
                   onChange={(e) => setForm({ ...form, role_id: +e.target.value })}
                   className="w-full rounded-md border border-border bg-secondary text-foreground text-sm px-3 py-2 mt-1"
                 >
-                  <option value={1}>Administrador</option>
-                  <option value={2}>Técnico</option>
+                  <option value="" disabled>Selecciona un rol...</option>
+                  {roles.map((r) => (
+                    <option key={r.id} value={r.id}>{r.name}</option>
+                  ))}
                 </select>
               </div>
               <Button
@@ -184,14 +188,19 @@ export default function UsersPage() {
                   <TableCell className="text-muted-foreground text-sm">{u.email}</TableCell>
                   <TableCell className="text-muted-foreground text-sm">{u.phone ?? "—"}</TableCell>
                   <TableCell>
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                      u.role_id === 1
-                        ? "bg-primary/15 text-primary border-primary/30"
-                        : "bg-warning/15 text-warning border-warning/30"
-                    }`}>
-                      {u.role_id === 1 ? <Shield className="w-3 h-3" /> : <Wrench className="w-3 h-3" />}
-                      {u.role_id === 1 ? "Administrador" : "Técnico"}
-                    </span>
+                    {(() => {
+                      const role = roles.find((r) => r.id === u.role_id);
+                      return (
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                          u.role_id === 1
+                            ? "bg-primary/15 text-primary border-primary/30"
+                            : "bg-warning/15 text-warning border-warning/30"
+                        }`}>
+                          {u.role_id === 1 ? <Shield className="w-3 h-3" /> : <Wrench className="w-3 h-3" />}
+                          {role ? role.name : `Rol #${u.role_id}`}
+                        </span>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell className="font-mono text-muted-foreground text-sm">{u.dni ?? "—"}</TableCell>
                   <TableCell className="text-right">

@@ -1,4 +1,4 @@
-import { LayoutDashboard, MapPin, Bike, Route, Map, Users, Settings, LogOut, Wrench } from "lucide-react";
+import { LayoutDashboard, MapPin, Bike, Route, Map, Users, Settings, LogOut, Wrench, ShieldCheck } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -16,18 +16,20 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
+// Todos los ítems de menú principales con su módulo de permiso asociado
 const mainItems = [
-  { icon: LayoutDashboard, title: "Panel", url: "/" },
-  { icon: MapPin, title: "Estaciones", url: "/stations" },
-  { icon: Bike, title: "Bicicletas", url: "/bikes" },
-  { icon: Route, title: "Viajes", url: "/trips" },
-  { icon: Map, title: "Mapa en Vivo", url: "/map" },
-  { icon: Wrench, title: "Mantenimiento", url: "/maintenance" },
+  { icon: LayoutDashboard, title: "Panel",         url: "/",           module: null        }, // siempre visible
+  { icon: MapPin,          title: "Estaciones",    url: "/stations",   module: "stations"  },
+  { icon: Bike,            title: "Bicicletas",    url: "/bikes",      module: "bikes"     },
+  { icon: Route,           title: "Viajes",        url: "/trips",      module: "trips"     },
+  { icon: Map,             title: "Mapa en Vivo",  url: "/map",        module: null        }, // siempre visible
+  { icon: Wrench,          title: "Mantenimiento", url: "/maintenance",module: "maintenance"},
 ];
 
 const adminItems = [
-  { title: "Usuarios", url: "/users", icon: Users },
-  { title: "Configuración", url: "/settings", icon: Settings },
+  { title: "Usuarios",         url: "/users",    icon: Users,        module: "users"    },
+  { title: "Roles y Permisos", url: "/roles",    icon: ShieldCheck,  module: null       }, // solo admin real ve esto
+  { title: "Configuración",    url: "/settings", icon: Settings,     module: "settings" },
 ];
 
 export function AppSidebar() {
@@ -35,7 +37,20 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, can } = useAuth();
+  const isAdmin = user?.role_id === 1;
+
+  // Filtrar ítems visibles basado en permisos del rol
+  const visibleMainItems = mainItems.filter((item) =>
+    item.module === null ? true : can(item.module, "view")
+  );
+  // Los ítems admin: el de "Roles y Permisos" solo para admin real (role_id=1)
+  const visibleAdminItems = adminItems.filter((item) => {
+    if (item.url === "/roles") return isAdmin;         // solo superadmin
+    if (isAdmin) return true;                          // admin ve todo lo administrativo
+    if (item.module === null) return false;
+    return can(item.module, "view");                   // otros roles: verificar permiso
+  });
 
   const isActive = (path: string) =>
     path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
@@ -75,7 +90,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
+              {visibleMainItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <NavLink
@@ -99,7 +114,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {adminItems.map((item) => (
+              {visibleAdminItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <NavLink
